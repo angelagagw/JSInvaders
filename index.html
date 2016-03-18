@@ -1,0 +1,36 @@
+﻿<!DOCTYPE HTML>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link href="content/styles.css" rel="stylesheet">
+    <title>M</title>
+</head>
+<body>
+    <div class="grid">
+        <header>
+            <h1></h1>
+            <ul>
+                <li><a href="#gameZone" id="newGame">New game</a></li>
+            </ul>
+        </header>
+        <div id="canvas">
+            <canvas id="backgroundCanvas">
+            </canvas>
+            <svg id="svgRoot">
+                <circle cx="100" cy="100" r="10" id="ball" />
+                <rect id="pad" height="15px" width="150px" x="200" y="200" rx="10" ry="20"/>
+            </svg>
+            <div id="stats">
+            </div>
+            <div id="message">Victory!</div>
+        </div>
+        <div id="fpsDisplay" style="position: absolute; top: 70px; left: 10px;"></div>
+        <footer>
+            <ul>
+                <li>Jeff</li>
+            </ul>
+        </footer>
+    </div>
+    <script type="text/javascript" src="scripts/game.js"></script>
+</body>
+</html>
