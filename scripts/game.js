@@ -9,7 +9,7 @@
     function Game() {
 		this.config = {
 			bombRate: 0.05 / 1000,
-			bombMinVelocity: 50 / 1000,
+			bombMinVelocity: 25 / 1000,
 			bombMaxVelocity: 50 / 1000,
 			invaderInitialVelocity: 25 / 1000,
 			invaderAcceleration: 0,
@@ -57,7 +57,28 @@
 
     }
 	//  Initialis the Game with a canvas.
-	Game.prototype.initialise = function(gameCanvas) {
+	Game.prototype.initialize = function(gameCanvas) {
+
+        var me = this, 
+            ctx = gameCanvas.getContext('2d'),
+            image = new Image();
+
+
+        image.onload = function() {
+            Promise.all([
+                createImageBitmap(this, 0, 30, 52, 30),
+                createImageBitmap(this, 0, 0, 38, 30),
+                createImageBitmap(this, 38, 0, 38, 30),
+                createImageBitmap(this, 38 * 2, 0, 38, 30),
+                createImageBitmap(this, 38 * 3, 0, 38, 30),
+                createImageBitmap(this, 38 * 4, 0, 38, 30),
+                createImageBitmap(this, 38 * 5, 0, 38, 30),
+                //createImageBitmap(this, 32, 0, 32, 32)
+            ]).then(function(sprites) {
+                me.sprites = sprites;
+            });
+        }
+        image.src = 'content/images/sprites.png';
 
 		//  Set the game canvas.
 		this.gameCanvas = gameCanvas;
@@ -68,11 +89,12 @@
 
 		//  Set the state game bounds.
 		this.gameBounds = {
-			left: gameCanvas.width / 2 - this.config.gameWidth / 2,
-			right: gameCanvas.width / 2 + this.config.gameWidth / 2,
+            left: gameCanvas.width < this.config.gameWidth ? 18 : (gameCanvas.width / 2 - this.config.gameWidth / 2),
+            right: gameCanvas.width < this.config.gameWidth ? gameCanvas.width - 18 : (gameCanvas.width / 2 + this.config.gameWidth / 2),
 			top: gameCanvas.height / 2 - this.config.gameHeight / 2,
 			bottom: gameCanvas.height / 2 + this.config.gameHeight / 2,
 		};
+
 	};
 
 	Game.prototype.moveToState = function(state) {
@@ -340,7 +362,7 @@
 	PlayState.prototype.enter = function( game ) {
 
 		//  Create the ship.
-		this.ship = new Ship(game.width / 2, game.gameBounds.bottom);
+		this.ship = new Ship(game.width / 2, game.gameBounds.bottom, game.sprites[0]);
 
 		//  Setup initial state.
 		this.invaderCurrentVelocity =  10;
@@ -364,7 +386,7 @@
 				invaders.push(new Invader(
 					(game.width / 2) + ((files/2 - file) * 200 / files),
 					(game.gameBounds.top + rank * 20),
-					rank, file, 'Invader'));
+					rank, file, 'Invader', game.sprites[getRandomInt(1, 7)]));
 			}
 		}
 		this.invaders = invaders;
@@ -386,15 +408,15 @@
 			this.ship.x += this.shipSpeed * delta;
 		}
 		if(game.pressedKeys[32]) {
-			this.fireRocket();
+			this.fireRocket(game);
 		}
 
 		//  Keep the ship in bounds.
-		if(this.ship.x < game.gameBounds.left) {
-			this.ship.x = game.gameBounds.left;
+		if((this.ship.x - this.ship.width / 2) < game.gameBounds.left) {
+			this.ship.x = game.gameBounds.left + this.ship.width / 2;
 		}
-		if(this.ship.x > game.gameBounds.right) {
-			this.ship.x = game.gameBounds.right;
+		if((this.ship.x + this.ship.width / 2) > game.gameBounds.right) {
+			this.ship.x = game.gameBounds.right - this.ship.width / 2;
 		}
 
 		//  Move each bomb.
@@ -425,10 +447,10 @@
 			var invader = this.invaders[i];
 			var newx = invader.x + this.invaderVelocity.x * delta;
 			var newy = invader.y + this.invaderVelocity.y * delta;
-			if(hitLeft == false && newx < game.gameBounds.left) {
+			if(hitLeft == false && (newx - invader.width / 2) < game.gameBounds.left) {
 				hitLeft = true;
 			}
-			else if(hitRight == false && newx > game.gameBounds.right) {
+			else if(hitRight == false && (newx + invader.width / 2) > game.gameBounds.right) {
 				hitRight = true;
 			}
 			else if(hitBottom == false && newy > game.gameBounds.bottom) {
@@ -561,15 +583,12 @@
 		//  Clear the background.
 		ctx.clearRect(0, 0, game.width, game.height);
 		
-		//  Draw ship.
-		ctx.fillStyle = '#999999';
-		ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
+        // Draw Ship
+        this.ship.render(ctx);
 
 		//  Draw invaders.
-		ctx.fillStyle = '#006600';
 		for(var i=0; i<this.invaders.length; i++) {
-			var invader = this.invaders[i];
-			ctx.fillRect(invader.x - invader.width/2, invader.y - invader.height/2, invader.width, invader.height);
+			this.invaders[i].render(ctx);
 		}
 
 		//  Draw bombs.
@@ -612,7 +631,7 @@
 
 		if(keyCode == 32) {
 			//  Fire!
-			this.fireRocket();
+			this.fireRocket(game);
 		}
 		if(keyCode == 80) {
 			//  Push the pause state.
@@ -624,13 +643,16 @@
 
 	};
 
-	PlayState.prototype.fireRocket = function() {
+	PlayState.prototype.fireRocket = function(game) {
 		//  If we have no last rocket time, or the last rocket time 
 		//  is older than the max rocket rate, we can fire.
 		if(this.lastRocketTime === null || ((new Date()).valueOf() - this.lastRocketTime) > (1000 / this.config.rocketMaxFireRate))
 		{   
 			//  Add a rocket.
 			this.rockets.push(new Rocket(this.ship.x, this.ship.y - 12, this.config.rocketVelocity));
+            if (game.score > 0) {
+                game.score--;
+            }
 			this.lastRocketTime = (new Date()).valueOf();
 
 			//  Play the 'shoot' sound.
@@ -717,12 +739,22 @@
 	  Ship
 	  The ship has a position and that's about it.
 	*/
-	function Ship(x, y) {
+	function Ship(x, y, sprite) {
 		this.x = x;
 		this.y = y;
-		this.width = 20;
-		this.height = 16;
+		this.width = 40;
+		this.height = 24;
+        this.sprite = sprite;
 	}
+
+    Ship.prototype.render = function(ctx) {
+        if (this.sprite) {
+          ctx.drawImage(this.sprite, this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+        } else {
+            ctx.fillStyle = '#999999';
+            ctx.fillRect(this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+        }
+    }
 
 	/*
 		Rocket
@@ -749,7 +781,7 @@
 		Invader's have position, type, rank/file and that's about it. 
 	*/
 
-	function Invader(x, y, rank, file, type) {
+	function Invader(x, y, rank, file, type, sprite) {
 		this.x = x;
 		this.y = y;
 		this.rank = rank;
@@ -757,7 +789,19 @@
 		this.type = type;
 		this.width = 18;
 		this.height = 14;
+        this.sprite = sprite;
+        this.isExploding = false;
 	}
+    Invader.prototype.render = function(ctx) {
+		//  Draw invaders.
+		ctx.fillStyle = '#006600';
+        if (!this.isExploding) {
+            //ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+            if (this.sprite) {
+                ctx.drawImage(this.sprite, this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+            }
+        }
+    }
 
 	/*
 		Game State
@@ -777,13 +821,15 @@
 
 	
 	//  Setup the canvas.
-	var canvas = document.getElementById("gameCanvas");
-	canvas.width = 800;
-	canvas.height = 600;
+	var canvas = document.getElementById("gameCanvas"),
+        width = screen && screen.width;
+        height = screen && screen.height;
+	canvas.width = width || 800; //< 800 ? width : 800;
+	canvas.height = height ? height - 30 : 600; // < 600 ? height : 600;
 	//  Create the game.
 	var game = new Game();
 	//  Initialise it with the game canvas.
-	game.initialise(canvas);
+	game.initialize(canvas);
 	//  Start the game.
 	game.start();
 	//  Listen for keyboard events.
@@ -804,6 +850,7 @@
 		document.getElementById("muteLink").innerText = game.sounds.mute ? "unmute" : "mute";
 	}
 
-
-
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min)) + min;
+    }
 })();
