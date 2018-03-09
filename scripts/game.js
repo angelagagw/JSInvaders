@@ -290,14 +290,14 @@
 		ctx.fillStyle = '#ffffff';
 		ctx.textBaseline="center"; 
 		ctx.textAlign="center"; 
-		ctx.fillText("GP Invaders", game.width / 2, game.height/2 - 40); 
+		ctx.fillText("GP Invaders", game.width / 2, game.height/3 - 40); 
 		ctx.font="16px Arial";
 
-		ctx.fillText("Press 'Fire' to start.", game.width / 2, game.height/2); 
+		ctx.fillText("Press 'Fire' to start.", game.width / 2, game.height/3); 
 		ctx.font="14px Arial";
-		ctx.fillText("rotate left / ←  : move left", game.width / 2, game.height/2 + 20); 
-		ctx.fillText("rotate right / → : move right", game.width / 2, game.height/2 + 36); 
-		ctx.fillText("\"FIRE!\" / space  : fire rocket", game.width / 2, game.height/2 + 52); 
+		ctx.fillText("rotate left / ←  : move left", game.width / 2, game.height/3 + 20); 
+		ctx.fillText("rotate right / → : move right", game.width / 2, game.height/3 + 36); 
+		ctx.fillText("\"FIRE!\" / space  : fire rocket", game.width / 2, game.height/3 + 52); 
 
 	};
 
@@ -329,11 +329,11 @@
 		ctx.fillStyle = '#ffffff';
 		ctx.textBaseline="center"; 
 		ctx.textAlign="center"; 
-		ctx.fillText("Game Over!", game.width / 2, game.height/2 - 40); 
+		ctx.fillText("Game Over!", game.width / 2, game.height/3 - 40); 
 		ctx.font="16px Arial";
-		ctx.fillText("You scored " + game.score + " and got to level " + game.level, game.width / 2, game.height/2);
+		ctx.fillText("You scored " + game.score + " and got to level " + game.level, game.width / 2, game.height/3);
 		ctx.font="16px Arial";
-		ctx.fillText("Press 'Space' to play again.", game.width / 2, game.height/2 + 40);   
+		ctx.fillText("Press 'Fire' to play again.", game.width / 2, game.height/3 + 40);   
 	};
 
 	GameOverState.prototype.keyDown = function( game, keyCode ) {
