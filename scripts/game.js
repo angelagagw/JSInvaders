@@ -293,7 +293,12 @@
 		ctx.fillText("GP Invaders", game.width / 2, game.height/2 - 40); 
 		ctx.font="16px Arial";
 
-		ctx.fillText("Press 'Space' to start.", game.width / 2, game.height/2); 
+		ctx.fillText("Press 'Fire' to start.", game.width / 2, game.height/2); 
+		ctx.font="14px Arial";
+		ctx.fillText("rotate left / ←  : move left", game.width / 2, game.height/2 + 20); 
+		ctx.fillText("rotate right / → : move right", game.width / 2, game.height/2 + 36); 
+		ctx.fillText("\"FIRE!\" / space  : fire rocket", game.width / 2, game.height/2 + 52); 
+
 	};
 
 	WelcomeState.prototype.keyDown = function(game, keyCode) {
@@ -835,7 +840,7 @@
 	//  Listen for keyboard events.
 	window.addEventListener("keydown", function keydown(e) {
 		var keycode = e.which || window.event.keycode;
-		//  Supress further processing of left/right/space (37/29/32)
+		//  Supress further processing of left/right/space (37/39/32)
 		if(keycode == 37 || keycode == 39 || keycode == 32) {
 			e.preventDefault();
 		}
@@ -845,6 +850,30 @@
 		var keycode = e.which || window.event.keycode;
 		game.keyUp(keycode);
 	});
+
+	window.addEventListener('deviceorientation', (e) => {
+		var rotGamma = e.gamma;
+
+		if (rotGamma > 30 && !game.pressedKeys[39]) {
+			game.keyDown(39);
+		} else if (rotGamma < 30 &&  game.pressedKeys[39]) {
+			game.keyUp(39);
+		} else if (rotGamma < -30 && !game.pressedKeys[37]) {
+			game.keyDown(37);
+		} else if (rotGamma > -30 && game.pressedKeys[37]) {
+			game.keyUp(37);
+		}
+	});
+	var fireBtn = document.getElementById('fire-btn');
+
+	fireBtn.addEventListener('touchstart', (e) => {
+		game.keyDown(32);
+	});
+	fireBtn.addEventListener('touchend', (e) => {
+		game.keyUp(32);
+	})
+
+
 	function toggleMute() {
 		game.mute();
 		document.getElementById("muteLink").innerText = game.sounds.mute ? "unmute" : "mute";
