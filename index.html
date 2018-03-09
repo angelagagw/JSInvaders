@@ -71,13 +71,19 @@
 								background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
 								text-decoration: none;
 						}
+						.txt-unselectable {
+								-webkit-user-select: none; /* Safari */        
+								-moz-user-select: none; /* Firefox */
+								-ms-user-select: none; /* IE10+/Edge */
+								user-select: none; /* Standard */
+						}
         </style>
     </head>
     <body>
         <div id="gamecontainer">
             <canvas id="gameCanvas"></canvas>
             <div id="controls">
-                <div id="fire-btn" class="fire btn">FIRE!</div>
+                <div id="fire-btn" class="fire btn txt-unselectable">FIRE!</div>
             </div>
         </div>
 
